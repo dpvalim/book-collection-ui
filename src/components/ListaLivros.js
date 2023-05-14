@@ -36,7 +36,7 @@ const ListaLivros = () => {
   return (
 
     <div>
-    <h1>Meus Livros</h1>
+    <h3>Meus Livros</h3>
     <table width={1000}>
       <thead>
         <tr>
