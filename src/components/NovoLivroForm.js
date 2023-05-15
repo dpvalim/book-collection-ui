@@ -14,7 +14,7 @@ const NovoLivroForm = () => {
     
     try {
       await axios.post('/api/livros', { titulo, autor, ano });
-      window.location.replace('/');
+      window.location.replace('/livro/salvo');
     } catch (error) {
       console.error(error);
     }
