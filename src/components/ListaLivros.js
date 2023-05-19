@@ -41,6 +41,7 @@ class ListaLivros extends Component {
           return <tr key={livro.id}>
               <td style={{whiteSpace: 'nowrap'}}>{livro.titulo}</td>
               <td>{livro.autor}</td>
+              <td>{livro.ano}</td>
               <td>
                   <ButtonGroup>
                       <Button size="sm" color="primary" tag={Link} to={"/api/livros/" + livro.id}>Edit</Button>
@@ -62,7 +63,8 @@ class ListaLivros extends Component {
                       <thead>
                       <tr>
                           <th width="30%">Título</th>
-                          <th width="30%">Autor</th>
+                          <th width="25%">Autor</th>
+                          <th width="5%">Ano</th>
                           <th width="40%">Ações</th>
                       </tr>
                       </thead>
