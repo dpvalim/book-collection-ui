@@ -1,32 +1,22 @@
-import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
+import React, { Component } from 'react';
 import './App.css';
+import Home from './components/Home';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import ListaLivros from './components/ListaLivros';
-import NovoLivroForm from './components/NovoLivroForm';
+import EditarLivro from "./components/NovoLivroForm";
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Switch>
-          <Route exact path="/">
-            <header className="App-header">
-              <h3>Novo Livro</h3>
-              <NovoLivroForm />
-              <br />
-              <ListaLivros />
-            </header>
-          </Route>
-          <Route path="/livro/salvo">
-            <header className="App-header">
-              <h3>Livro Salvo!</h3>
-              <Redirect to="/" />
-            </header>
-          </Route>
-        </Switch>
-      </BrowserRouter>
-    </div>
-  );
+class App extends Component {
+  render() {
+    return (
+        <Router>
+          <Switch>
+            <Route path='/' exact={true} component={Home}/>
+            <Route path='/api/livros' exact={true} component={ListaLivros}/>
+            <Route path='/api/livros/:id' component={EditarLivro}/>
+          </Switch>
+        </Router>
+    )
+  }
 }
-
 
 export default App;

@@ -1,70 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { Component } from 'react';
+import { Button, ButtonGroup, Container, Table } from 'reactstrap';
+import AppNavbar from './AppNavbar';
+import { Link } from 'react-router-dom';
 
-const ListaLivros = () => {
+class ListaLivros extends Component {
 
-  const [livros, setLivros] = useState([]);
-
-  useEffect(() => {
-    
-    const fetchLivros = async () => {
-      
-      try {
-        const response = await axios.get('/api/livros');
-        setLivros(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-
-    };
-
-    fetchLivros();
-
-  }, []);
-
-  const handleRemove = async (livro) => {
-    if (window.confirm(`Tem certeza que deseja remover o livro "${livro.titulo}"?`)) {
-      try {
-        await axios.delete(`/api/livros/${livro.id}`);
-        setLivros(livros.filter((l) => l.id !== livro.id));
-      } catch (error) {
-        console.error(error);
-      }
+    constructor(props) {
+        super(props);
+        this.state = {livros: []};
+        this.remove = this.remove.bind(this);
     }
-  };
 
-  return (
+    componentDidMount() {
+        fetch('/api/livros')
+            .then(response => response.json())
+            .then(data => this.setState({livros: data}));
+    }
 
-    <div>
-    <h3>Meus Livros</h3>
-    <table width={1000}>
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Autor</th>
-          <th>Ano</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          livros.map((livro) => (
-            <tr key={livro._id}>
-              <td>{livro.titulo}</td>
+    async remove(id) {
+      await fetch(`/api/livros/${id}`, {
+          method: 'DELETE',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+          }
+      }).then(() => {
+          let updated = [...this.state.livros].filter(i => i.id !== id);
+          this.setState({livros: updated});
+      });
+  }
+  
+  render() {
+      const {livros, isLoading} = this.state;
+  
+      if (isLoading) {
+          return <p>Carregando...</p>;
+      }
+  
+      const listaLivros = livros.map(livro => {
+          return <tr key={livro.id}>
+              <td style={{whiteSpace: 'nowrap'}}>{livro.titulo}</td>
               <td>{livro.autor}</td>
-              <td>{livro.ano}</td>
               <td>
-                <button onClick={() => handleRemove(livro)}>Remover</button>
+                  <ButtonGroup>
+                      <Button size="sm" color="primary" tag={Link} to={"/api/livros/" + livro.id}>Edit</Button>
+                      <Button size="sm" color="danger" onClick={() => this.remove(livro.id)}>Delete</Button>
+                  </ButtonGroup>
               </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-    </div>
-
-  );
-
-};
+          </tr>
+      });
+  
+      return (
+          <div>
+              <AppNavbar/>
+              <Container fluid>
+                  <div className="float-right">
+                      <Button color="success" tag={Link} to="/api/livros/new">Novo Livro</Button>
+                  </div>
+                  <h3>Livro</h3>
+                  <Table className="mt-4">
+                      <thead>
+                      <tr>
+                          <th width="30%">Título</th>
+                          <th width="30%">Autor</th>
+                          <th width="40%">Ações</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      {listaLivros}
+                      </tbody>
+                  </Table>
+              </Container>
+          </div>
+      );
+  }
+}
 
 export default ListaLivros;

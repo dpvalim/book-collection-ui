@@ -1,50 +1,88 @@
-import React, { useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
-import axios from 'axios';
+import React, { Component } from 'react';
+import { Link, withRouter } from 'react-router-dom';
+import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
+import AppNavbar from './AppNavbar';
 
-const NovoLivroForm = () => {
+class EditarLivro extends Component {
 
-  const [titulo, setTitulo] = useState('');
-  const [autor, setAutor] = useState('');
-  const [ano, setAno] = useState('');
+    emptyItem = {
+        titulo: '',
+        autor: '',
+        ano: ''
+    };
 
-  const handleSubmit = async (event) => {
-
-    event.preventDefault();
-    
-    try {
-      await axios.post('/api/livros', { titulo, autor, ano });
-      window.location.replace('/livro/salvo');
-    } catch (error) {
-      console.error(error);
+    constructor(props) {
+        super(props);
+        this.state = {
+            item: this.emptyItem
+        };
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-  };
+    async componentDidMount() {
+      if (this.props.match.params.id !== 'new') {
+          const livro = await (await fetch(`/api/livros/${this.props.match.params.id}`)).json();
+          this.setState({item: livro});
+      }
+    }
 
-  return (
-    
-    <Form onSubmit={handleSubmit}>
-      <Form.Group controlId="formTitulo">
-        <Form.Label>Título</Form.Label>
-        <Form.Control type="text" placeholder="Insira o título" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
-      </Form.Group>
+    handleChange(event) {
+      const target = event.target;
+      const value = target.value;
+      const name = target.name;
+      let item = {...this.state.item};
+      item[name] = value;
+      this.setState({item});
+    }
 
-      <Form.Group controlId="formAutor">
-        <Form.Label>Autor</Form.Label>
-        <Form.Control type="text" placeholder="Insira o autor" value={autor} onChange={(e) => setAutor(e.target.value)} />
-      </Form.Group>
-      
-      <Form.Group controlId="formAno">
-        <Form.Label>Ano</Form.Label>
-        <Form.Control type="number" placeholder="Insira o ano" value={ano} onChange={(e) => setAno(e.target.value)} />
-      </Form.Group>
-      
-      <Button variant="primary" type="submit">
-        Salvar
-      </Button>
-    </Form>
+    async handleSubmit(event) {
+      event.preventDefault();
+      const {item} = this.state;
+  
+      await fetch('/api/livros' + (item.id ? '/' + item.id : ''), {
+          method: (item.id) ? 'PUT' : 'POST',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(item),
+      });
 
-  );
-};
+      this.props.history.push('/api/livros');
+    }
 
-export default NovoLivroForm;
+    render() {
+      const {item} = this.state;
+      const title = <h2>{item.id ? 'Editar Livro' : 'Novo Livro'}</h2>;
+  
+      return <div>
+          <AppNavbar/>
+          <Container>
+              {title}
+              <Form onSubmit={this.handleSubmit}>
+                  <FormGroup>
+                      <Label for="titulo">Título</Label>
+                      <Input type="text" name="titulo" id="titulo" value={item.titulo || ''}
+                             onChange={this.handleChange} autoComplete="titulo"/>
+                  </FormGroup>
+                  <FormGroup>
+                      <Label for="autor">Autor</Label>
+                      <Input type="text" name="autor" id="autor" value={item.autor || ''}
+                             onChange={this.handleChange} autoComplete="autor"/>
+                  </FormGroup>
+                  <FormGroup>
+                      <Label for="ano">Ano</Label>
+                      <Input type="text" name="ano" id="ano" value={item.ano || ''}
+                             onChange={this.handleChange} autoComplete="ano"/>
+                  </FormGroup>
+                  <FormGroup>
+                      <Button color="primary" type="submit">Save</Button>{' '}
+                      <Button color="secondary" tag={Link} to="/api/livros">Cancel</Button>
+                  </FormGroup>
+              </Form>
+          </Container>
+      </div>
+    }
+}
+export default withRouter(EditarLivro);
