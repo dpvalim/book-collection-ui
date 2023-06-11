@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 class ListaLivros extends Component {
 
@@ -18,7 +19,7 @@ class ListaLivros extends Component {
     }
 
     async remove(id) {
-      await fetch(`/api/livros/${id}`, {
+      await fetch('/api/livros/${id}', {
           method: 'DELETE',
           headers: {
               'Accept': 'application/json',
@@ -28,9 +29,40 @@ class ListaLivros extends Component {
           let updated = [...this.state.livros].filter(i => i.id !== id);
           this.setState({livros: updated});
       });
-  }
-  
+    }
+
+    
   render() {
+    const marcarFavorito = async livroId => {
+        try {
+          await axios.post(`/api/livros/${livroId}/favorito`);
+          const updatedLivros = this.state.livros.map(livro => {
+            if (livro.id === livroId) {
+              return { ...livro, favorito: true };
+            }
+            return livro;
+          });
+          this.setState({livros: updatedLivros});
+        } catch (error) {
+          console.error('Erro ao marcar o livro como favorito:', error);
+        }
+      };
+
+      const desmarcarFavorito = async livroId => {
+        try {
+          await axios.delete(`/api/livros/${livroId}/favorito`);
+          const updatedLivros = this.state.livros.map(livro => {
+            if (livro.id === livroId) {
+              return { ...livro, favorito: false };
+            }
+            return livro;
+          });
+          this.setState({livros: updatedLivros});
+        } catch (error) {
+          console.error('Erro ao desmarcar o livro como favorito:', error);
+        }
+      };
+
       const {livros, isLoading} = this.state;
   
       if (isLoading) {
@@ -39,6 +71,11 @@ class ListaLivros extends Component {
   
       const listaLivros = livros.map(livro => {
           return <tr key={livro.id}>
+            <td>
+                <button onClick={() => livro.favorito ? desmarcarFavorito(livro.id) : marcarFavorito(livro.id)}>
+                  {livro.favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                </button>
+              </td>
               <td style={{whiteSpace: 'nowrap'}}>{livro.titulo}</td>
               <td>{livro.autor}</td>
               <td>{livro.ano}</td>
@@ -53,19 +90,20 @@ class ListaLivros extends Component {
   
       return (
           <div>
-              <AppNavbar/>
+              <AppNavbar/><br/>
               <Container fluid>
-                  <div className="float-right">
-                      <Button color="success" tag={Link} to="/api/livros/new">Novo Livro</Button>
+                  <div className="float-end">
+                      <Button color="success" tag={Link} to="/api/livros/new">Adicionar Livro</Button>
                   </div>
-                  <h3>Livro</h3>
+                  <h3>Livros</h3>
                   <Table className="mt-4">
                       <thead>
                       <tr>
+                          <th width="10%">Favorito</th>
                           <th width="30%">Título</th>
                           <th width="25%">Autor</th>
                           <th width="5%">Ano</th>
-                          <th width="40%">Ações</th>
+                          <th width="35%">Ações</th>
                       </tr>
                       </thead>
                       <tbody>
